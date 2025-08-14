@@ -51,6 +51,7 @@ const CreateQuiz = () => {
       setIsStudent(true);
     } else {
       setIsStudent(false);
+      setTeacherData({gender: teacherData.gender === "" ? (!userInfo.username ? "" : "Mr." + userInfo.username) : teacherData.gender, category: teacherData.category === "" ? "Arabic" : teacherData.category,})
     }
   }, [userInfo])
 
@@ -171,7 +172,7 @@ const CreateQuiz = () => {
 
     if (questions.length > 2) {
       setIsLoading(true);
-      fetch("http://localhost:3001/api/quiz", {
+      fetch("https://quiz-battle-api.vercel.app/api/quiz", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

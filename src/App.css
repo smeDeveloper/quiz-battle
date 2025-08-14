@@ -400,6 +400,30 @@ footer {
   text-shadow: 0px 0px 10px #00000099;
 }
 
+.auth-container .footer {
+  display: flex ;
+  align-items: center ;
+  justify-content: center ;
+}
+
+.auth-container .footer .footer-text {
+  color: #fff ;
+  font-weight: bold ;
+  font-family: "Exo 2" ;
+}
+
+.auth-container .footer button {
+  all: unset ;
+  font-weight: bold ;
+  font-family: "Exo 2";
+  color: #df9aff ;
+  cursor: pointer ;
+}
+
+.auth-container .footer button:hover {
+  text-decoration: underline ;
+}
+
 .loading_screen,
 .no_internet,
 .confirm_message,

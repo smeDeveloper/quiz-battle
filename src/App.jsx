@@ -68,7 +68,7 @@ function App() {
   useEffect(() => {
     if (user) {
       setIsLoading(true);
-      fetch("http://localhost:3001/api/quiz")
+      fetch("https://quiz-battle-api.vercel.app/api/quiz")
         .then(res => res.json())
         .then(data => {
           setQuizzes(data.quizzes);
@@ -101,7 +101,7 @@ function App() {
     window.addEventListener("beforeunload", () => {
       localStorage.setItem("user", user);
     })
-  }, [])
+  }, [user])
 
   const hidePopUp = (e) => {
     if (popUpRef.current) {
