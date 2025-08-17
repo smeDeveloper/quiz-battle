@@ -140,7 +140,7 @@ const HomePage = () => {
                       })
                   )
               )
-              : <p className="no_quizzes">There is no quizzes yet.</p>
+              : <p className="no_quizzes">No quizzes available at the moment. Please check back later!</p>
           }
         </div>
       </div>

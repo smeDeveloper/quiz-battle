@@ -18,11 +18,12 @@ const QuizInfoPage = () => {
   const { userInfo, setUserInfo } = useUserContext();
 
   useEffect(() => {
-    setIsLoading(true);
-    fetch("https://quiz-battle-api.vercel.app/api/quiz/" + id)
+    setIsLoading(prev => prev + 1);
+    fetch("http://localhost:3001/api/quiz/" + id)
       .then(res => res.json())
       .then(data => {
-        setIsLoading(false);
+        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
         if (data.failed) {
           setMessageContent({
             title: "Failed To Fetch",
@@ -33,7 +34,8 @@ const QuizInfoPage = () => {
           setQuizData(data);
         }
       }).catch(err => {
-        setIsLoading(false);
+        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
         navigate("/home");
         setMessageContent({
           title: "Failed To Fetch",
@@ -43,25 +45,19 @@ const QuizInfoPage = () => {
   }, [])
 
   useEffect(() => {
-    setIsLoading(true);
     if (userInfo.role === "teacher") {
-      setIsLoading(false);
       navigate("/home");
       setMessageContent({
         title: "Access Denied",
         message: "Only the students can access the quizzes.",
       })
-    } else {
-      if (userInfo.role) {
-        setIsLoading(false);
-      }
     }
   }, [userInfo])
 
   const startQuiz = () => {
     if (!userInfo.playedQuizzes || !userInfo.playedQuizzes.includes(id)) {
       if (userInfo.role === "student") {
-        setIsLoading(true);
+        setIsLoading(prev => prev + 1);
         get(ref(db, "users")).then(snapShot => {
           const users = snapShot.val();
           const userIndex = users.findIndex(user => user.id === userInfo.id);
@@ -70,14 +66,15 @@ const QuizInfoPage = () => {
             playingQuiz: id,
             quizEndsAt: new Date().getTime() + quizTime,
           }).then(() => {
-            setIsLoading(false);
+            setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
             setUserInfo(prev => ({
               ...prev, playingQuiz: id, quizEndsAt: new Date().getTime() + quizTime,
             }))
             navigate("/quiz/" + id);
           }).catch(err => {
             console.log(err);
-            setIsLoading(false);
+            setIsLoading(prev => prev + 1);
             setMessageContent({
               title: "Starting Error",
               message: "Oops! something went wrong while starting the quiz.",
@@ -85,7 +82,8 @@ const QuizInfoPage = () => {
           })
         }).catch(err => {
           console.log(err);
-          setIsLoading(false);
+          setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
           setMessageContent({
             title: "Starting Error",
             message: "Oops! something went wrong while starting the quiz.",

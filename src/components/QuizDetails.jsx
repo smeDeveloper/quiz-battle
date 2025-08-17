@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { buildStyles, CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Trash2, Edit, BarChart3, Users, Clock, CheckCheck, Eye } from "lucide-react";
+import { ChevronLeft, Trash2, Edit, BarChart3, Users, Clock, CheckCheck, Eye, Share2 } from "lucide-react";
 import { usePopUpContext } from "../contexts/Popup";
 import { useLoaderContext } from "../contexts/loader";
 import { useUserContext } from "../contexts/user";
 import { useQuizzesContext } from "../contexts/Quizzes";
+import copy from "copy-to-clipboard";
 
 const QuizDetails = () => {
     const { id } = useParams();
@@ -34,8 +35,8 @@ const QuizDetails = () => {
     const { user } = useUserContext();
 
     useEffect(() => {
-        setIsLoading(true);
-        fetch("https://quiz-battle-api.vercel.app/api/results", {
+        setIsLoading(prev => prev + 1);
+        fetch("http://localhost:3001/api/results", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -46,7 +47,7 @@ const QuizDetails = () => {
             }),
         }).then(res => res.json())
             .then(data => {
-                setIsLoading(false);
+                setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                 if (!data.quizData) {
                     navigate("/home");
                     if (data.msg) {
@@ -64,7 +65,7 @@ const QuizDetails = () => {
                 }
             }).catch(err => {
                 navigate("/home");
-                setIsLoading(false);
+                setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                 setMessageContent({
                     title: "Fetching Failed",
                     message: "Failed to fetch your quiz details from the database.",
@@ -122,6 +123,7 @@ const QuizDetails = () => {
                 <div className="top">
                     <p>{quizData.category}</p>
                     <div className="right_side">
+                        <button className="share" onClick={() => {copy(window.location.origin + "/info/" + id); setMessageContent({title: "Link Copied", message: "Quiz link has been copied! ✅",})}}><Share2 size={18} /></button>
                         <button className="edit" onClick={() => setShowUpdateContainer(true)}><Edit size={18} /></button>
                         <button className="remove" onClick={() => setShowRemoveQuiz(true)}><Trash2 size={18} /></button>
                     </div>
@@ -341,8 +343,8 @@ const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, se
             });
         } else {
             if (categories.includes(quizCategory)) {
-                setIsLoading(true);
-                fetch("https://quiz-battle-api.vercel.app/api/edit", {
+                setIsLoading(prev => prev + 1);
+                fetch("http://localhost:3001/api/edit", {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
@@ -357,7 +359,8 @@ const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, se
                     }),
                 }).then(res => res.json())
                     .then(data => {
-                        setIsLoading(false);
+                        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
                         if (data.failed) {
                             setMessageContent({
                                 title: "Failed to update",
@@ -378,7 +381,8 @@ const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, se
                             setShowUpdateContainer(false);
                         }
                     }).catch(err => {
-                        setIsLoading(false);
+                        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
                         setMessageContent({
                             title: "Failed to update",
                             message: "Oops! something wrong occured while updating your quiz, try again later.",
@@ -425,8 +429,8 @@ const DeleteQuiz = ({quizID , userID , setShowRemoveQuiz , setMessageContent , s
     const [inputText , setInputText] = useState("");
 
     const removeQuiz = () => {
-        setIsLoading(true);
-        fetch("https://quiz-battle-api.vercel.app/api/delete" , {
+        setIsLoading(prev => prev + 1);
+        fetch("http://localhost:3001/api/delete" , {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -437,7 +441,8 @@ const DeleteQuiz = ({quizID , userID , setShowRemoveQuiz , setMessageContent , s
             }),
         }).then(res => res.json())
         .then(data => {
-            setIsLoading(false);
+            setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
             if(data.failed) {
                 setMessageContent({
                     title: "Failed To Remove",
@@ -465,7 +470,7 @@ const DeleteQuiz = ({quizID , userID , setShowRemoveQuiz , setMessageContent , s
                     <p className="text">Enter the word <span>"remove"</span> in the input below to confirm your deletion.</p>
                     <input type="text" placeholder="Remove Quiz" onChange={(e) => setInputText(e.target.value)} />
                     <div className="buttons">
-                        <button onClick={() => removeQuiz()} className={"delete " + (inputText === "remove" ? "" : "disabled")}>Remove</button>
+                        <button onClick={() => {inputText === "remove" ? removeQuiz() : console.log("Can't delete quiz now.")}} className={"delete " + (inputText === "remove" ? "" : "disabled")}>Remove</button>
                         <button className="cancel" onClick={() => setShowRemoveQuiz(false)}>Cancel</button>
                     </div>
                 </div>

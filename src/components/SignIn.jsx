@@ -32,7 +32,7 @@ const AuthPage = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isSignUp) {
-            setIsLoading(true);
+            setIsLoading(prev => prev + 1);
             createUserWithEmailAndPassword(auth, formData.email, formData.password).then(() => {
                 get(ref(db, "users")).then(snapShot => {
                     const users = snapShot.val() || [];
@@ -47,25 +47,25 @@ const AuthPage = () => {
                     update(ref(db), {
                         users: users,
                     }).then(() => {
-                        setIsLoading(false);
+                        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                         localStorage.setItem("user", newUser.id);
                         setUser(newUser.id);
                         setUserInfo(newUser);
                         navigate("/home");
-                    }).catch(err => {
-                        setIsLoading(false)
+                    }).catch(() => {
+                        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                         setMessageContent({ title: "Signing up error", message: "Oops! something went wrong while creating your account.", });
                     })
                 }).catch(err => {
-                    setIsLoading(false)
+                    setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                     setMessageContent({ title: "Signing up error", message: "Oops! something went wrong while creating your account.", });
                 })
             }).catch(err => {
-                setIsLoading(false)
+                setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                 setMessageContent({ title: "Signing up error", message: "Oops! something went wrong while creating your account.", });
             })
         } else {
-            setIsLoading(true);
+            setIsLoading(prev => prev + 1);
             signInWithEmailAndPassword(auth, formData.email, formData.password)
                 .then(() => {
                     get(ref(db, "users")).then(snapShot => {
@@ -75,10 +75,10 @@ const AuthPage = () => {
                         setUserInfo(user);
                         localStorage.setItem("user", user.id);
                         navigate("/home");
-                        setIsLoading(false);
+                        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                     }).catch(err => {
                         setMessageContent({ title: "Oops! something went wrong while fetching you data.", });
-                        setIsLoading(false);
+                        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                     })
                 }).catch(err => {
                     if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password") {
@@ -86,7 +86,7 @@ const AuthPage = () => {
                     } else {
                         setMessageContent({ title: "Oops! something went wrong while fetching you data.", });
                     }
-                    setIsLoading(false);
+                    setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                 })
         }
     };

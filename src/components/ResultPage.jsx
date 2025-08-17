@@ -19,8 +19,8 @@ const ResultPage = () => {
     const [userPercentage, setUserPercentage] = useState(0);
 
     useEffect(() => {
-        setIsLoading(true);
-        fetch("https://quiz-battle-api.vercel.app/api/result", {
+        setIsLoading(prev => prev + 1);
+        fetch("http://localhost:3001/api/result", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -33,7 +33,7 @@ const ResultPage = () => {
             .then(res => res.json())
             .then(data => {
                 if (data.failed) {
-                    setIsLoading(false);
+                    setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                     setMessageContent({
                         title: "Result Fetching Error",
                         message: "Oops! something went wrong while fetching you result.",
@@ -41,14 +41,16 @@ const ResultPage = () => {
                     navigate("/home");
                 } else {
                     if (!data.quizQuestions || !data.result) {
-                        setIsLoading(false);
+                        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
                         setMessageContent({
                             title: "Result Fetching Error",
                             message: "Oops! something went wrong while fetching your result.",
                         })
                         navigate("/home");
                     } else {
-                        setIsLoading(false);
+                        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
                         setUserResult(data);
                         let correctAnswers = 0;
                         let wrongAnswers = 0;
@@ -69,7 +71,8 @@ const ResultPage = () => {
             }).catch(err => {
                 console.log(err);
                 navigate("/home");
-                setIsLoading(false);
+                setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
                 setMessageContent({
                     title: "Result Fetching Error",
                     message: "Oops! something went wrong while fetching your result.",

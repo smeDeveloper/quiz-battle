@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { AlignVerticalJustifyEnd, ChevronLeft, Edit, Lock, Trash2 } from 'lucide-react';
+import { AlignVerticalJustifyEnd, ChevronLeft, Copy, Edit, Link2, Lock, Trash2, X } from 'lucide-react';
 import { useUserContext } from '../contexts/user';
 import { usePopUpContext } from '../contexts/Popup';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { usePreviewContext } from '../contexts/Preview';
 import { useLoaderContext } from '../contexts/loader';
 import { useQuizzesContext } from '../contexts/Quizzes';
 import isArabic from 'is-arabic';
+import copy from 'copy-to-clipboard';
 
 const CreateQuiz = () => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const CreateQuiz = () => {
   const [isUpdating, setIsUpdating] = useState(-1);
 
   const { userInfo } = useUserContext();
-  const { setMessageContent } = usePopUpContext();
+  const { setMessageContent , setCopyLink } = usePopUpContext();
   const { setPreviewQuestions } = usePreviewContext();
   const { setIsLoading } = useLoaderContext();
   const { setQuizzes } = useQuizzesContext();
@@ -51,7 +52,7 @@ const CreateQuiz = () => {
       setIsStudent(true);
     } else {
       setIsStudent(false);
-      setTeacherData({gender: teacherData.gender === "" ? (!userInfo.username ? "" : "Mr." + userInfo.username) : teacherData.gender, category: teacherData.category === "" ? "Arabic" : teacherData.category,})
+      setTeacherData({ gender: teacherData.gender === "" ? (!userInfo.username ? "" : "Mr." + userInfo.username) : teacherData.gender, category: teacherData.category === "" ? "Arabic" : teacherData.category, })
     }
   }, [userInfo])
 
@@ -171,8 +172,8 @@ const CreateQuiz = () => {
     };
 
     if (questions.length > 2) {
-      setIsLoading(true);
-      fetch("https://quiz-battle-api.vercel.app/api/quiz", {
+      setIsLoading(prev => prev + 1);
+      fetch("http://localhost:3001/api/quiz", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -181,7 +182,9 @@ const CreateQuiz = () => {
       }).then(res => res.json())
         .then(data => {
           if (data.saved) {
+            quiz._id = data.id;
             setMessageContent({ title: "Quiz Published", message: "Quiz Published Successfully.", })
+            setCopyLink(window.location.origin + "/info/" + data.id);
             localStorage.removeItem("questions");
             setQuizzes(prev => ([quiz, ...prev]));
             setPreviewQuestions([]);
@@ -190,10 +193,11 @@ const CreateQuiz = () => {
           } else {
             setMessageContent({ title: "Publishing Failed", message: data.msg, })
           }
-          setIsLoading(false);
+          setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
         }).catch(err => {
           console.log(err);
-          setIsLoading(false);
+          setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
           setMessageContent({ title: "Quiz Creation Error", message: "Oops! something went wrong while publishing your quiz.", })
         })
     } else {

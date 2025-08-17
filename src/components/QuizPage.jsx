@@ -46,15 +46,15 @@ const QuizPage = () => {
     }, [quizData])
 
     useEffect(() => {
-        setIsLoading(true);
+        setIsLoading(prev => prev + 1);
         if (userInfo.role && (userInfo.playedQuizzes ? !userInfo.playedQuizzes.includes(id) : true)) {
             if (userInfo.role && userInfo.role === "student") {
                 if (userInfo.playingQuiz && userInfo.playingQuiz === id) {
                     setChoosedAnswers(userInfo.choosedAnswers || []);
                     userChoosedAnswers.current = userInfo.choosedAnswers || [];
-                    fetch("https://quiz-battle-api.vercel.app/api/quiz/no-correct-answer/" + id).then(res => res.json())
+                    fetch("http://localhost:3001/api/quiz/no-correct-answer/" + id).then(res => res.json())
                         .then(data => {
-                            setIsLoading(false);
+                            setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                             if (data.failed) {
                                 setMessageContent({
                                     title: "Failed To Fetch",
@@ -76,7 +76,7 @@ const QuizPage = () => {
                                 setQuizData({ ...data, questions: newQuestions, });
                             }
                         }).catch(err => {
-                            setIsLoading(false);
+                            setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                             console.log(err);
                             navigate("/home");
                             setMessageContent({
@@ -86,7 +86,7 @@ const QuizPage = () => {
                         })
                 } else {
                     navigate("/info/" + id);
-                    setIsLoading(false);
+                    setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                 }
             } else {
                 if (userInfo.role === "teacher") {
@@ -95,7 +95,9 @@ const QuizPage = () => {
                         title: "Access Denied",
                         message: "Only the students can solve the quizzes.",
                     });
-                    setIsLoading(false);
+                    setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+                }else {
+                    setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                 }
             }
         } else {
@@ -105,7 +107,9 @@ const QuizPage = () => {
                     message: "You have solve this quiz before so you can't solve it again.",
                 })
                 navigate("/result/" + id);
-                setIsLoading(false);
+                setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+            }else {
+                setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
             }
         }
         return () => clearInterval(interval.current);
@@ -135,12 +139,11 @@ const QuizPage = () => {
             });
         }
     };
-    
 
     const finish = () => {
-        setIsLoading(true);
+        setIsLoading(prev => prev + 1);
         if (!userInfo.playedQuizzes || !userInfo.playedQuizzes.includes(id)) {
-            fetch("https://quiz-battle-api.vercel.app/api/quiz/with-answers/" + id).then(res => res.json())
+            fetch("http://localhost:3001/api/quiz/with-answers/" + id).then(res => res.json())
                 .then(data => {
                     if (!data.failed) {
                         let points = 0;
@@ -158,8 +161,7 @@ const QuizPage = () => {
                                 points += 5;
                             }
                         }
-                        console.log(currentUserChoosedAnswers);
-                        fetch("https://quiz-battle-api.vercel.app/api/submit", {
+                        fetch("http://localhost:3001/api/submit", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
@@ -185,7 +187,8 @@ const QuizPage = () => {
                                         quizEndsAt: null,
                                         choosedAnswers: [],
                                     }).then(() => {
-                                        setIsLoading(false);
+                                        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
                                         setUserInfo(prev => ({
                                             ...prev,
                                             playingQuiz: null,
@@ -208,7 +211,8 @@ const QuizPage = () => {
                                         navigate("/result/" + id);
                                     })
                                         .catch(() => {
-                                            setIsLoading(false);
+                                            setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
                                             navigate("/result/" + id);
                                             setUserResult({
                                                 answers: currentUserChoosedAnswers,
@@ -235,10 +239,12 @@ const QuizPage = () => {
                                     title: "Submitting Failed",
                                     message: "Oops! something wrong occured while saving your result.",
                                 })
-                                setIsLoading(false);
+                                setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
                             })
                     } else {
-                        setIsLoading(false);
+                        setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
                         setMessageContent({
                             title: "Submitting Failed",
                             message: "Oops! something wrong occured while saving your result.",
@@ -250,11 +256,13 @@ const QuizPage = () => {
                         title: "Submitting Failed",
                         message: "Oops! something wrong occured while saving your result.",
                     })
-                    setIsLoading(false);
+                    setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
                 })
         } else {
             navigate("/result/" + id);
-            setIsLoading(false);
+            setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
             clearInterval(interval.current)
         }
     }
