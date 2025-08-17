@@ -19,7 +19,7 @@ const QuizInfoPage = () => {
 
   useEffect(() => {
     setIsLoading(prev => prev + 1);
-    fetch("http://localhost:3001/api/quiz/" + id)
+    fetch("https://quiz-battle-api.vercel.app/api/quiz/" + id)
       .then(res => res.json())
       .then(data => {
         setIsLoading(prev => prev !== 0 ? prev - 1 : prev);

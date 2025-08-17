@@ -173,7 +173,7 @@ const CreateQuiz = () => {
 
     if (questions.length > 2) {
       setIsLoading(prev => prev + 1);
-      fetch("http://localhost:3001/api/quiz", {
+      fetch("https://quiz-battle-api.vercel.app/api/quiz", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
