@@ -7,7 +7,6 @@ import { usePreviewContext } from '../contexts/Preview';
 import { useLoaderContext } from '../contexts/loader';
 import { useQuizzesContext } from '../contexts/Quizzes';
 import isArabic from 'is-arabic';
-import copy from 'copy-to-clipboard';
 
 const CreateQuiz = () => {
   const navigate = useNavigate();

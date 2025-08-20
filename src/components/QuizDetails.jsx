@@ -22,7 +22,7 @@ const QuizDetails = () => {
     const [quizTime, setQuizTime] = useState();
     const [showUpdateContainer, setShowUpdateContainer] = useState(false);
     const [showUserResults, setShowUserResults] = useState(-1);
-    const [showRemoveQuiz , setShowRemoveQuiz] = useState(false);
+    const [showRemoveQuiz, setShowRemoveQuiz] = useState(false);
     const [scoreDistribution, setScoreDistribution] = useState({
         first: 0,
         second: 0,
@@ -32,7 +32,7 @@ const QuizDetails = () => {
     const { setMessageContent } = usePopUpContext();
     const { setIsLoading } = useLoaderContext();
     const { setQuizzes, quizzes } = useQuizzesContext();
-    const { user } = useUserContext();
+    const { user , userInfo } = useUserContext();
 
     useEffect(() => {
         setIsLoading(prev => prev + 1);
@@ -123,7 +123,7 @@ const QuizDetails = () => {
                 <div className="top">
                     <p>{quizData.category}</p>
                     <div className="right_side">
-                        <button className="share" onClick={() => {copy(window.location.origin + "/info/" + id); setMessageContent({title: "Link Copied", message: "Quiz link has been copied! ✅",})}}><Share2 size={18} /></button>
+                        <button className="share" onClick={() => {copy(window.location.origin + "/info/" + id);setTimeout(() => {copy(window.location.origin + "/info/" + id)},1);setMessageContent({ title: "Link Copied", message: "Quiz link has been copied! ✅", })}}><Share2 size={18} /></button>
                         <button className="edit" onClick={() => setShowUpdateContainer(true)}><Edit size={18} /></button>
                         <button className="remove" onClick={() => setShowRemoveQuiz(true)}><Trash2 size={18} /></button>
                     </div>
@@ -324,19 +324,20 @@ const QuizDetails = () => {
                 </div>
             </div>
             {showRemoveQuiz ? <DeleteQuiz quizID={id} userID={user} setShowRemoveQuiz={setShowRemoveQuiz} setMessageContent={setMessageContent} setQuizzes={setQuizzes} quizzes={quizzes} setIsLoading={setIsLoading} navigate={navigate}/> : undefined}
-            {showUpdateContainer ? <UpdateQuiz category={quizData.category} description={quizData.description} setIsLoading={setIsLoading} setMessageContent={setMessageContent} setShowUpdateContainer={setShowUpdateContainer} quizID={id} userID={user} setQuizData={setQuizData} setQuizzes={setQuizzes} quizzes={quizzes} /> : undefined}
+            {showUpdateContainer ? <UpdateQuiz category={quizData.category} description={quizData.description} setIsLoading={setIsLoading} setMessageContent={setMessageContent} setShowUpdateContainer={setShowUpdateContainer} quizID={id} userID={user} setQuizData={setQuizData} setQuizzes={setQuizzes} quizzes={quizzes} teacherName={userInfo.username} mrOrMrs={localStorage.getItem("teacher data") ? JSON.parse(localStorage.getItem("teacher data")).gender : "Mr." + userInfo.username} /> : undefined}
         </div>
     );
 }
 
-const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, setShowUpdateContainer, quizID, userID, setQuizData, setQuizzes, quizzes }) => {
+const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, setShowUpdateContainer, quizID, userID, setQuizData, setQuizzes, quizzes , teacherName , mrOrMrs }) => {
     const [quizDescription, setDescription] = useState(description);
     const [quizCategory, setQuizCategory] = useState(category)
+    const [teacherGender , setTeacherGender] = useState(mrOrMrs);
 
     const categories = ["Math", "English", "Arabic", "Science", "Social Studies"];
 
     const updateQuiz = () => {
-        if (description === quizDescription && category === quizCategory) {
+        if (description === quizDescription && category === quizCategory && teacherGender === mrOrMrs) {
             setMessageContent({
                 title: "Nothing Changed",
                 message: "There are no changes to update.",
@@ -353,6 +354,7 @@ const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, se
                         data: {
                             category: quizCategory,
                             description: quizDescription,
+                            from_name: teacherGender,
                         },
                         quizID: quizID,
                         userID: userID,
@@ -371,13 +373,17 @@ const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, se
 
                             if (quizIndex !== -1) {
                                 const appQuizzes = [...quizzes];
-                                appQuizzes[quizIndex] = { ...appQuizzes[quizIndex], category: quizCategory, description: quizDescription, }
+                                appQuizzes[quizIndex] = { ...appQuizzes[quizIndex], category: quizCategory, description: quizDescription,from_name: teacherGender, }
                                 setQuizzes(appQuizzes);
                             }
 
                             setQuizData(prev => ({
-                                ...prev, category: quizCategory, description: quizDescription,
+                                ...prev, 
+                                category: quizCategory, 
+                                description: quizDescription,
+                                from_name: teacherGender,
                             }))
+                            localStorage.setItem("teacher data" , JSON.stringify({gender: teacherGender, category: quizCategory,}))
                             setShowUpdateContainer(false);
                         }
                     }).catch(err => {
@@ -403,6 +409,12 @@ const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, se
                 <p className="title">Update Quiz</p>
                 <div className="update_container">
                     <div className="field">
+                        <select onChange={(e) => setTeacherGender(e.target.value)} value={teacherGender}>
+                            <option value={"Mr." + teacherName}>Mr.{teacherName}</option>
+                            <option value={"Mrs." + teacherName}>Mrs.{teacherName}</option>
+                        </select>
+                    </div>
+                    <div className="field">
                         <select onChange={(e) => setQuizCategory(e.target.value)} value={quizCategory}>
                             <option value="Science">Science</option>
                             <option value="English">English</option>
@@ -425,12 +437,12 @@ const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, se
     );
 }
 
-const DeleteQuiz = ({quizID , userID , setShowRemoveQuiz , setMessageContent , setIsLoading , navigate , quizzes , setQuizzes}) => {
-    const [inputText , setInputText] = useState("");
+const DeleteQuiz = ({ quizID, userID, setShowRemoveQuiz, setMessageContent, setIsLoading, navigate, quizzes, setQuizzes }) => {
+    const [inputText, setInputText] = useState("");
 
     const removeQuiz = () => {
         setIsLoading(prev => prev + 1);
-        fetch("https://quiz-battle-api.vercel.app/api/delete" , {
+        fetch("https://quiz-battle-api.vercel.app/api/delete", {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -440,26 +452,26 @@ const DeleteQuiz = ({quizID , userID , setShowRemoveQuiz , setMessageContent , s
                 quizID: quizID,
             }),
         }).then(res => res.json())
-        .then(data => {
-            setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+            .then(data => {
+                setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
 
-            if(data.failed) {
-                setMessageContent({
-                    title: "Failed To Remove",
-                    message: data.msg,
-                })
-            }else {
-                navigate("/home");
-                setMessageContent({
-                    title: "Quiz Removed",
-                    message: "Quiz removed successfully!",
-                })
-                const newQuizzes = [...quizzes];
-                const quizIndex = newQuizzes.findIndex(quiz => quiz._id === quizID)
-                newQuizzes.splice(quizIndex , 1);
-                setQuizzes(newQuizzes)
-            }
-        })
+                if (data.failed) {
+                    setMessageContent({
+                        title: "Failed To Remove",
+                        message: data.msg,
+                    })
+                } else {
+                    navigate("/home");
+                    setMessageContent({
+                        title: "Quiz Removed",
+                        message: "Quiz removed successfully!",
+                    })
+                    const newQuizzes = [...quizzes];
+                    const quizIndex = newQuizzes.findIndex(quiz => quiz._id === quizID)
+                    newQuizzes.splice(quizIndex, 1);
+                    setQuizzes(newQuizzes)
+                }
+            })
     }
 
     return (
@@ -470,7 +482,7 @@ const DeleteQuiz = ({quizID , userID , setShowRemoveQuiz , setMessageContent , s
                     <p className="text">Enter the word <span>"remove"</span> in the input below to confirm your deletion.</p>
                     <input type="text" placeholder="Remove Quiz" onChange={(e) => setInputText(e.target.value)} />
                     <div className="buttons">
-                        <button onClick={() => {inputText === "remove" ? removeQuiz() : console.log("Can't delete quiz now.")}} className={"delete " + (inputText === "remove" ? "" : "disabled")}>Remove</button>
+                        <button onClick={() => { inputText === "remove" ? removeQuiz() : console.log("Can't delete quiz now.") }} className={"delete " + (inputText === "remove" ? "" : "disabled")}>Remove</button>
                         <button className="cancel" onClick={() => setShowRemoveQuiz(false)}>Cancel</button>
                     </div>
                 </div>

@@ -181,7 +181,7 @@ function App() {
                   </div>
                   <div className="link">{copyLink}</div>
                 </div>
-                <button onClick={() => {copy(copyLink); setMessageContent({title: "Link Copied", message: "Quiz link has been copied! ✅",})}}>copy <Copy size={16} /></button>
+                <button onClick={() => {copy(copyLink);setTimeout(() => {copy(copyLink)},1);setMessageContent({ title: "Link Copied", message: "Quiz link has been copied! ✅", })}}>copy <Copy size={16} /></button>
                 <button onClick={() => setCopyLink("")}>Close</button>
               </div>
             </div>
