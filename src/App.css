@@ -553,7 +553,9 @@ footer {
   gap: 10px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 10px 20px;
+  padding: 15px 20px;
+  scroll-snap-type: x mandatory ;
+  scroll-padding-left: 10px ;
 }
 
 .home_page_container .categories .content .category {
@@ -569,6 +571,50 @@ footer {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  scroll-snap-align: start ;
+  margin: 0px 10px ;
+}
+
+.home_page_container .categories .content .category .icons {
+  position: relative ;
+  top: 0 ;
+  left: 0 ;  
+  height: 150px ;
+  width: 170px ;
+  z-index: 0 ;
+}
+
+.home_page_container .categories .content .category svg {
+  opacity: 0.5 ;
+}
+
+.home_page_container .categories .content .category:hover .title {
+  scale: 1.1 ;
+}
+
+.home_page_container .categories .content .category .icon {
+  position: absolute ;
+  transition: 0.5s ;
+}
+
+.home_page_container .categories .content .category .icons .icon:first-child {
+  top: -10px ;
+  left: -10px ;
+}
+
+.home_page_container .categories .content .category .icons .icon:last-child {
+  bottom: 70px ;
+  right: 70px ;
+}
+
+.home_page_container .categories .content .category:hover .icon:first-child {
+  top: -30px ;
+  left: -30px ;
+}
+
+.home_page_container .categories .content .category:hover .icon:last-child {
+  bottom: 50px ;
+  right: 50px ;
 }
 
 .home_page_container .categories .content .category.english {
@@ -615,6 +661,8 @@ footer {
   font-family: "Exo 2", sans-serif;
   font-weight: bold;
   font-size: 20px;
+  position: absolute ;
+  transition: 0.5s ;
 }
 
 .home_page_container .quizzes .content {
@@ -849,6 +897,7 @@ footer a.linkedin:hover {
   font-family: "Exo 2", sans-serif;
   display: flex;
   justify-content: center;
+  text-align: center ;
 }
 
 .create_quiz_container,
@@ -856,7 +905,7 @@ footer a.linkedin:hover {
 .quiz_info_container {
   display: flex;
   flex-direction: column;
-  min-height: 80vh;
+  min-height: 83vh;
   background: #222;
 }
 

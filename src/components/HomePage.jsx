@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Search } from 'lucide-react'
+import { Atom, BookA, BookOpenText, Calculator, Earth, Languages, Microscope, Radical, Search, Swords } from 'lucide-react'
 import { useUserContext } from '../contexts/user'
 import { useQuizzesContext } from "../contexts/Quizzes";
 import { useNavigate } from 'react-router-dom';
@@ -75,6 +75,40 @@ const HomePage = () => {
             categories.map((category, i) => {
               return (
                 <div onClick={() => { searchInputRef.current.focus(); searchInputRef.current.value = category; search(category) }} key={"category_" + i} className={"category " + category.replace(" ", "_").toLowerCase()}>
+                  <div className="icons">
+                    {category === "Science" ? 
+                    <>
+                      <div className="icon"><Microscope size={60}/></div>
+                      <div className="icon"><Atom size={60}/></div>
+                    </>
+                    : (
+                      category === "Math" ?
+                      <>
+                        <div className="icon"><Calculator size={60}/></div>
+                        <div className="icon"><Radical size={60}/></div>
+                      </>
+                      : 
+                      (category === "Social Studies" ? 
+                        <>
+                          <div className="icon"><Swords size={60}/></div>
+                          <div className="icon"><Earth size={60}/></div>
+                        </>
+                        : (
+                          category === "English" ? 
+                          <>
+                            <div className="icon"><Languages size={60}/></div>
+                            <div className="icon"><BookA size={60}/></div>
+                          </>
+                          : 
+                          <>
+                            <div className="icon"><BookOpenText size={60}/></div>
+                            <div className="icon"><Languages size={60}/></div>
+                          </>
+                        )
+                      )
+                    )
+                  }
+                  </div>
                   <div className="title">{category}</div>
                 </div>
               )
