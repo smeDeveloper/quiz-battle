@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { AlignVerticalJustifyEnd, ChevronLeft, Copy, Edit, Link2, Lock, Trash2, X } from 'lucide-react';
+import { ChevronLeft, Copy, Edit, Link2, Lock, Trash2, X } from 'lucide-react';
 import { useUserContext } from '../contexts/user';
 import { usePopUpContext } from '../contexts/Popup';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ const CreateQuiz = () => {
   const [questions, setQuestions] = useState(switchOn ? (localStorage.getItem("questions") ? JSON.parse(localStorage.getItem("questions")) : []) : []);
   const [teacherData, setTeacherData] = useState(localStorage.getItem("teacher data") ? JSON.parse(localStorage.getItem("teacher data")) : { gender: "", category: "", });
   const [description, setDescription] = useState(localStorage.getItem("description") || "");
+  const [password , setPassword] = useState(localStorage.getItem("password") || "");
   const [showConfirmMessage, setShowConfirmMessage] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
   const [isUpdating, setIsUpdating] = useState(-1);
@@ -32,6 +33,7 @@ const CreateQuiz = () => {
   const wrongAnswer3 = useRef();
   const questionsContainer = useRef();
   const descriptionInput = useRef();
+  const passwordInput = useRef();
 
   const emptyInputs = () => {
     questionInput.current.value = "";
@@ -168,11 +170,12 @@ const CreateQuiz = () => {
       from_name: teacherData.gender,
       questions: questions,
       description: descriptionInput.current.value,
+      password: passwordInput.current.value,
     };
 
     if (questions.length > 2) {
       setIsLoading(prev => prev + 1);
-      fetch("https://quiz-battle-api.vercel.app/api/quiz", {
+      fetch("http://localhost:3001/api/quiz", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -234,10 +237,11 @@ const CreateQuiz = () => {
                 <p className="field_title">Category (Subject)</p>
                 <div className="field">
                   <select value={teacherData.category} onChange={(e) => { setTeacherData(prev => ({ ...prev, category: e.target.value, })); localStorage.setItem("teacher data", JSON.stringify({ ...teacherData, category: e.target.value, })) }} name="category" id="field">
+                    <option value="Math" >Math</option>
                     <option value="Arabic">Arabic</option>
                     <option value="English">English</option>
                     <option value="Science">Science</option>
-                    <option value="Math" >Math</option>
+                    <option value="French">French</option>
                     <option value="Social Studies">Social Studies</option>
                   </select>
                 </div>
@@ -245,6 +249,10 @@ const CreateQuiz = () => {
               <div className="input_field">
                 <p className="field_title">Description (Optional)</p>
                 <textarea value={description} onChange={(e) => { localStorage.setItem("description", e.target.value); setDescription(e.target.value) }} ref={descriptionInput} name="description" id="description" placeholder="Wirte a description for your quiz...."></textarea>
+              </div>
+              <div className="input_field">
+                <p className="field_title">Quiz Password (Optional)</p>
+                <input value={password} onChange={(e) => { localStorage.setItem("password" , e.target.value); setPassword(e.target.value)}} ref={passwordInput} type="text" name="password" id="password" placeholder="Enter Quiz Password..."/>
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Atom, BookA, BookOpenText, Calculator, Earth, Languages, Microscope, Radical, Search, Swords } from 'lucide-react'
+import { Atom, BookA, BookOpenText, Calculator, Earth, Languages, Lock, Microscope, Radical, Search, Swords } from 'lucide-react'
 import { useUserContext } from '../contexts/user'
 import { useQuizzesContext } from "../contexts/Quizzes";
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +18,7 @@ const HomePage = () => {
   const [showingTeacherQuizzes, setShowingTeacherQuizzes] = useState(false);
   const [teacherQuizzes, setTeacherQuizzes] = useState([]);
 
-  const categories = ["Science", "Math", "Arabic", "English", "Social Studies"];
+  const categories = ["Science", "Math", "Arabic", "English", "Social Studies", "French"];
 
   useEffect(() => {
     setRender(prev => prev + 1);
@@ -39,7 +39,7 @@ const HomePage = () => {
 
   const showTeacherQuizzes = () => {
     setSearchResults([]);
-    if(searchInputRef.current) {
+    if (searchInputRef.current) {
       searchInputRef.current.value = "";
     }
     if (showingTeacherQuizzes) {
@@ -76,38 +76,46 @@ const HomePage = () => {
               return (
                 <div onClick={() => { searchInputRef.current.focus(); searchInputRef.current.value = category; search(category) }} key={"category_" + i} className={"category " + category.replace(" ", "_").toLowerCase()}>
                   <div className="icons">
-                    {category === "Science" ? 
-                    <>
-                      <div className="icon"><Microscope size={60}/></div>
-                      <div className="icon"><Atom size={60}/></div>
-                    </>
-                    : (
-                      category === "Math" ?
+                    {category === "Science" ?
                       <>
-                        <div className="icon"><Calculator size={60}/></div>
-                        <div className="icon"><Radical size={60}/></div>
+                        <div className="icon"><Microscope size={60} /></div>
+                        <div className="icon"><Atom size={60} /></div>
                       </>
-                      : 
-                      (category === "Social Studies" ? 
-                        <>
-                          <div className="icon"><Swords size={60}/></div>
-                          <div className="icon"><Earth size={60}/></div>
-                        </>
-                        : (
-                          category === "English" ? 
+                      : (
+                        category === "Math" ?
                           <>
-                            <div className="icon"><Languages size={60}/></div>
-                            <div className="icon"><BookA size={60}/></div>
+                            <div className="icon"><Calculator size={60} /></div>
+                            <div className="icon"><Radical size={60} /></div>
                           </>
-                          : 
-                          <>
-                            <div className="icon"><BookOpenText size={60}/></div>
-                            <div className="icon"><Languages size={60}/></div>
-                          </>
-                        )
+                          :
+                          (category === "Social Studies" ?
+                            <>
+                              <div className="icon"><Swords size={60} /></div>
+                              <div className="icon"><Earth size={60} /></div>
+                            </>
+                            : (
+                              category === "English" ?
+                                <>
+                                  <div className="icon"><Languages size={60} /></div>
+                                  <div className="icon"><BookA size={60} /></div>
+                                </>
+                                :
+                                (
+                                  category === "French" ?
+                                    <>
+                                      <div className="icon"><Languages size={60} /></div>
+                                      <div className="icon"><BookOpenText size={60} /></div>
+                                    </>
+                                    :
+                                    <>
+                                      <div className="icon"><BookOpenText size={60} /></div>
+                                      <div className="icon"><Languages size={60} /></div>
+                                    </>
+                                )
+                            )
+                          )
                       )
-                    )
-                  }
+                    }
                   </div>
                   <div className="title">{category}</div>
                 </div>
@@ -128,13 +136,14 @@ const HomePage = () => {
                       searchResults.map((quiz, i) => {
                         return (
                           <div className="quiz" key={"Quiz_" + i}>
+                            {quiz.password ? <div className="locked"><Lock size={18} strokeWidth={3} /></div> : undefined}
                             <div className="main_content">
                               <p className="title">{quiz.category}</p>
                               <p className="teacher_name">{quiz.from_name}</p>
                               <p className="questions_number">{quiz.questions.length} Questions</p>
                               <p className="description">{quiz.description ? quiz.description : "No Description Provided"}</p>
                             </div>
-                            {quiz.from_id === userInfo.id ? <button className="details" onClick={() => navigate("/details/" + quiz._id)}>Quiz Details</button> : <button className="start" onClick={() => {userInfo.role === "student" ? navigate("/info/" + quiz._id) : setMessageContent({title: "Access Denied", message: "Only the students can access the quizzes.",})}}>Start Quiz</button>}
+                            {quiz.from_id === userInfo.id ? <button className="details" onClick={() => navigate("/details/" + quiz._id)}>Quiz Details</button> : <button className="start" onClick={() => { userInfo.role === "student" ? navigate("/info/" + quiz._id) : setMessageContent({ title: "Access Denied", message: "Only the students can access the quizzes.", }) }}>Start Quiz</button>}
                           </div>
                         )
                       })
@@ -147,13 +156,14 @@ const HomePage = () => {
                           teacherQuizzes.map((quiz, i) => {
                             return (
                               <div className="quiz" key={"Quiz_" + i}>
+                                {quiz.password ? <div className="locked"><Lock size={18} strokeWidth={3} /></div> : undefined}
                                 <div className="main_content">
                                   <p className="title">{quiz.category}</p>
                                   <p className="teacher_name">{quiz.from_name}</p>
                                   <p className="questions_number">{quiz.questions.length} Questions</p>
                                   <p className="description">{quiz.description ? quiz.description : "No Description Provided"}</p>
                                 </div>
-                                {quiz.from_id === userInfo.id ? <button className="details" onClick={() => navigate("/details/" + quiz._id)}>Quiz Details</button> : <button className="start"  onClick={() => {userInfo.role === "student" ? navigate("/info/" + quiz._id) : setMessageContent({title: "Access Denied", message: "Only the students can access the quizzes.",})}}>Start Quiz</button>}
+                                {quiz.from_id === userInfo.id ? <button className="details" onClick={() => navigate("/details/" + quiz._id)}>Quiz Details</button> : <button className="start" onClick={() => { userInfo.role === "student" ? navigate("/info/" + quiz._id) : setMessageContent({ title: "Access Denied", message: "Only the students can access the quizzes.", }) }}>Start Quiz</button>}
                               </div>
                             )
                           })
@@ -162,13 +172,14 @@ const HomePage = () => {
                       : quizzes.map((quiz, i) => {
                         return (
                           <div className="quiz" key={"Quiz_" + i}>
+                            {quiz.password ? <div className="locked"><Lock size={18} strokeWidth={3} /></div> : undefined}
                             <div className="main_content">
                               <p className="title">{quiz.category}</p>
                               <p className="teacher_name">{quiz.from_name}</p>
                               <p className="questions_number">{quiz.questions ? quiz.questions.length : 0} Questions</p>
-                              <p className="description" dir={quiz.description ? (isArabic(quiz.description.split(" ")[0] , { count: 0,}) ? "rtl" : "ltr") : "ltr"}>{quiz.description ? quiz.description : "No Description Provided"}</p>
+                              <p className="description" dir={quiz.description ? (isArabic(quiz.description.split(" ")[0], { count: 0, }) ? "rtl" : "ltr") : "ltr"}>{quiz.description ? quiz.description : "No Description Provided"}</p>
                             </div>
-                            {quiz.from_id === userInfo.id ? <button className="details" onClick={() => navigate("/details/" + quiz._id)}>Quiz Details</button> : <button className="start"  onClick={() => {userInfo.role === "student" ? navigate("/info/" + quiz._id) : setMessageContent({title: "Access Denied", message: "Only the students can access the quizzes.",})}}>Start Quiz</button>}
+                            {quiz.from_id === userInfo.id ? <button className="details" onClick={() => navigate("/details/" + quiz._id)}>Quiz Details</button> : <button className="start" onClick={() => { userInfo.role === "student" ? navigate("/info/" + quiz._id) : setMessageContent({ title: "Access Denied", message: "Only the students can access the quizzes.", }) }}>Start Quiz</button>}
                           </div>
                         )
                       })

@@ -52,7 +52,7 @@ const QuizPage = () => {
                 if (userInfo.playingQuiz && userInfo.playingQuiz === id) {
                     setChoosedAnswers(userInfo.choosedAnswers || []);
                     userChoosedAnswers.current = userInfo.choosedAnswers || [];
-                    fetch("https://quiz-battle-api.vercel.app/api/quiz/no-correct-answer/" + id).then(res => res.json())
+                    fetch("http://localhost:3001/api/quiz/no-correct-answer/" + id).then(res => res.json())
                         .then(data => {
                             setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
                             if (data.failed) {
@@ -143,7 +143,7 @@ const QuizPage = () => {
     const finish = () => {
         setIsLoading(prev => prev + 1);
         if (!userInfo.playedQuizzes || !userInfo.playedQuizzes.includes(id)) {
-            fetch("https://quiz-battle-api.vercel.app/api/quiz/with-answers/" + id).then(res => res.json())
+            fetch("http://localhost:3001/api/quiz/with-answers/" + id).then(res => res.json())
                 .then(data => {
                     if (!data.failed) {
                         let points = 0;
@@ -161,7 +161,7 @@ const QuizPage = () => {
                                 points += 5;
                             }
                         }
-                        fetch("https://quiz-battle-api.vercel.app/api/submit", {
+                        fetch("http://localhost:3001/api/submit", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",

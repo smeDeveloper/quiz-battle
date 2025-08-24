@@ -1,5 +1,5 @@
 import isArabic from "is-arabic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { buildStyles, CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { useNavigate, useParams } from "react-router-dom";
@@ -23,6 +23,7 @@ const QuizDetails = () => {
     const [showUpdateContainer, setShowUpdateContainer] = useState(false);
     const [showUserResults, setShowUserResults] = useState(-1);
     const [showRemoveQuiz, setShowRemoveQuiz] = useState(false);
+    const [showChangePassword , setShowChangePassword] = useState(false);
     const [scoreDistribution, setScoreDistribution] = useState({
         first: 0,
         second: 0,
@@ -32,11 +33,11 @@ const QuizDetails = () => {
     const { setMessageContent } = usePopUpContext();
     const { setIsLoading } = useLoaderContext();
     const { setQuizzes, quizzes } = useQuizzesContext();
-    const { user , userInfo } = useUserContext();
+    const { user, userInfo } = useUserContext();
 
     useEffect(() => {
         setIsLoading(prev => prev + 1);
-        fetch("https://quiz-battle-api.vercel.app/api/results", {
+        fetch("http://localhost:3001/api/results", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -123,7 +124,7 @@ const QuizDetails = () => {
                 <div className="top">
                     <p>{quizData.category}</p>
                     <div className="right_side">
-                        <button className="share" onClick={() => {copy(window.location.origin + "/info/" + id);setTimeout(() => {copy(window.location.origin + "/info/" + id)},1);setMessageContent({ title: "Link Copied", message: "Quiz link has been copied! ✅", })}}><Share2 size={18} /></button>
+                        <button className="share" onClick={() => { copy(window.location.origin + "/info/" + id); setTimeout(() => { copy(window.location.origin + "/info/" + id) }, 1); setMessageContent({ title: "Link Copied", message: "Quiz link has been copied! ✅", }) }}><Share2 size={18} /></button>
                         <button className="edit" onClick={() => setShowUpdateContainer(true)}><Edit size={18} /></button>
                         <button className="remove" onClick={() => setShowRemoveQuiz(true)}><Trash2 size={18} /></button>
                     </div>
@@ -323,18 +324,19 @@ const QuizDetails = () => {
                     }
                 </div>
             </div>
-            {showRemoveQuiz ? <DeleteQuiz quizID={id} userID={user} setShowRemoveQuiz={setShowRemoveQuiz} setMessageContent={setMessageContent} setQuizzes={setQuizzes} quizzes={quizzes} setIsLoading={setIsLoading} navigate={navigate}/> : undefined}
-            {showUpdateContainer ? <UpdateQuiz category={quizData.category} description={quizData.description} setIsLoading={setIsLoading} setMessageContent={setMessageContent} setShowUpdateContainer={setShowUpdateContainer} quizID={id} userID={user} setQuizData={setQuizData} setQuizzes={setQuizzes} quizzes={quizzes} teacherName={userInfo.username} mrOrMrs={localStorage.getItem("teacher data") ? JSON.parse(localStorage.getItem("teacher data")).gender : "Mr." + userInfo.username} /> : undefined}
+            {showChangePassword ? <ChangePassword setIsLoading={setIsLoading} userID={user} setMessageContent={setMessageContent} setQuizData={setQuizData} setQuizzes={setQuizzes} quizzes={quizzes} setShowChangePassword={setShowChangePassword} /> : undefined}
+            {showRemoveQuiz ? <DeleteQuiz quizID={id} userID={user} setShowRemoveQuiz={setShowRemoveQuiz} setMessageContent={setMessageContent} setQuizzes={setQuizzes} quizzes={quizzes} setIsLoading={setIsLoading} navigate={navigate} /> : undefined}
+            {showUpdateContainer ? <UpdateQuiz category={quizData.category} description={quizData.description} quizData={quizData} setIsLoading={setIsLoading} setMessageContent={setMessageContent} setShowUpdateContainer={setShowUpdateContainer} quizID={id} userID={user} setQuizData={setQuizData} setQuizzes={setQuizzes} quizzes={quizzes} teacherName={userInfo.username} mrOrMrs={localStorage.getItem("teacher data") ? JSON.parse(localStorage.getItem("teacher data")).gender : "Mr." + userInfo.username} setShowChangePassword={setShowChangePassword} /> : undefined}
         </div>
     );
 }
 
-const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, setShowUpdateContainer, quizID, userID, setQuizData, setQuizzes, quizzes , teacherName , mrOrMrs }) => {
+const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, setShowUpdateContainer, quizID, userID, quizData , setQuizData, setQuizzes, quizzes, teacherName, mrOrMrs , setShowChangePassword }) => {
     const [quizDescription, setDescription] = useState(description);
     const [quizCategory, setQuizCategory] = useState(category)
-    const [teacherGender , setTeacherGender] = useState(mrOrMrs);
+    const [teacherGender, setTeacherGender] = useState(mrOrMrs);
 
-    const categories = ["Math", "English", "Arabic", "Science", "Social Studies"];
+    const categories = ["Math", "English", "Arabic", "Science", "Social Studies", "French"];
 
     const updateQuiz = () => {
         if (description === quizDescription && category === quizCategory && teacherGender === mrOrMrs) {
@@ -345,7 +347,7 @@ const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, se
         } else {
             if (categories.includes(quizCategory)) {
                 setIsLoading(prev => prev + 1);
-                fetch("https://quiz-battle-api.vercel.app/api/edit", {
+                fetch("http://localhost:3001/api/edit", {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
@@ -373,17 +375,17 @@ const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, se
 
                             if (quizIndex !== -1) {
                                 const appQuizzes = [...quizzes];
-                                appQuizzes[quizIndex] = { ...appQuizzes[quizIndex], category: quizCategory, description: quizDescription,from_name: teacherGender, }
+                                appQuizzes[quizIndex] = { ...appQuizzes[quizIndex], category: quizCategory, description: quizDescription, from_name: teacherGender, }
                                 setQuizzes(appQuizzes);
                             }
 
                             setQuizData(prev => ({
-                                ...prev, 
-                                category: quizCategory, 
+                                ...prev,
+                                category: quizCategory,
                                 description: quizDescription,
                                 from_name: teacherGender,
                             }))
-                            localStorage.setItem("teacher data" , JSON.stringify({gender: teacherGender, category: quizCategory,}))
+                            localStorage.setItem("teacher data", JSON.stringify({ gender: teacherGender, category: quizCategory, }))
                             setShowUpdateContainer(false);
                         }
                     }).catch(err => {
@@ -421,12 +423,14 @@ const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, se
                             <option value="Math">Math</option>
                             <option value="Arabic">Arabic</option>
                             <option value="Social Studies">Social Studies</option>
+                            <option value="French">French</option>
                         </select>
                     </div>
                     <div className="field">
                         <div className="title">Description</div>
                         <textarea placeholder="Enter your quiz description" name="" id="" onChange={(e) => setDescription(e.target.value)} value={quizDescription}></textarea>
                     </div>
+                    <button className="password_button" onClick={() => setShowChangePassword(true)}>{quizData.password ? "Change Password" : "Add Password"}</button>
                     <div className="buttons">
                         <button className="update" onClick={updateQuiz}>Update</button>
                         <button className="cancel" onClick={() => setShowUpdateContainer(false)}>Cancel</button>
@@ -442,7 +446,7 @@ const DeleteQuiz = ({ quizID, userID, setShowRemoveQuiz, setMessageContent, setI
 
     const removeQuiz = () => {
         setIsLoading(prev => prev + 1);
-        fetch("https://quiz-battle-api.vercel.app/api/delete", {
+        fetch("http://localhost:3001/api/delete", {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -485,6 +489,74 @@ const DeleteQuiz = ({ quizID, userID, setShowRemoveQuiz, setMessageContent, setI
                         <button onClick={() => { inputText === "remove" ? removeQuiz() : console.log("Can't delete quiz now.") }} className={"delete " + (inputText === "remove" ? "" : "disabled")}>Remove</button>
                         <button className="cancel" onClick={() => setShowRemoveQuiz(false)}>Cancel</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+const ChangePassword = ({setIsLoading , userID , setMessageContent , setQuizData , setQuizzes , quizzes , setShowChangePassword}) => {
+    const { id } = useParams();
+    const passwordInput = useRef();
+
+    const updatePassword = () => {
+        setIsLoading(true);
+        fetch("http://localhost:3001/api/change-password" , {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                newPassword: passwordInput.current.value,
+                userID: userID,
+                quizID: id,
+            }),
+        }).then(res => res.json())
+        .then(data => {
+            setIsLoading(false);
+            if(data.failed) {
+                setMessageContent({
+                    title: "Updating Failed",
+                    message: data.msg,
+                })
+            }else {
+                if(data.changed) {
+                    setMessageContent({
+                        title: "Password Changed",
+                        message: "Password has been changed successfully ✅.",
+                    })
+                    setShowChangePassword(false);
+                    let newQuizzes = [...quizzes].map(quiz => {
+                        const newQuiz = {...quiz};
+                        if(newQuiz._id === id) {
+                            newQuiz.password = data.password;
+                        }
+                        return newQuiz;
+                    });
+                    setQuizzes(newQuizzes);
+                    setQuizData(prev => ({
+                        ...prev , password: data.password,
+                    }))
+                }
+            }
+        }).catch(() => {
+            setIsLoading(false);
+            setMessageContent({
+                title: "Updating Failed",
+                message: "Oops! something went wrong while updating quiz password.", 
+            })
+        })
+    }
+
+    return (
+        <div className="enter_password_container">
+            <div className="content">
+                <p className="title">Change Password</p>
+                <p className="note">If you want to remove the password leave the input empty.</p>
+                <div className="main_content">
+                    <input ref={passwordInput} type="text" placeholder='New Password...' />
+                    <button className="start" onClick={updatePassword}>Change Password</button>
+                    <button className="cancel" onClick={() => setShowChangePassword(false)}>Cancel</button>
                 </div>
             </div>
         </div>

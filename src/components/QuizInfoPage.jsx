@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { CheckCheck, ChevronLeft, Clock, FileQuestion, ScrollTextIcon, User } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePopUpContext } from '../contexts/Popup';
@@ -11,7 +11,10 @@ const QuizInfoPage = () => {
   const navigate = useNavigate();
 
   const { id } = useParams();
+
   const [quizData, setQuizData] = useState({});
+  const [showEnterPassword, setShowEnterPassword] = useState(false);
+  const [passwordMatches, setPasswordMatches] = useState(false);
 
   const { setMessageContent } = usePopUpContext();
   const { setIsLoading } = useLoaderContext();
@@ -19,7 +22,7 @@ const QuizInfoPage = () => {
 
   useEffect(() => {
     setIsLoading(prev => prev + 1);
-    fetch("https://quiz-battle-api.vercel.app/api/quiz/" + id)
+    fetch("http://localhost:3001/api/quiz/" + id)
       .then(res => res.json())
       .then(data => {
         setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
@@ -54,41 +57,45 @@ const QuizInfoPage = () => {
     }
   }, [userInfo])
 
-  const startQuiz = () => {
+  const startQuiz = (matching) => {
     if (!userInfo.playedQuizzes || !userInfo.playedQuizzes.includes(id)) {
       if (userInfo.role === "student") {
-        setIsLoading(prev => prev + 1);
-        get(ref(db, "users")).then(snapShot => {
-          const users = snapShot.val();
-          const userIndex = users.findIndex(user => user.id === userInfo.id);
-          const quizTime = Math.floor(quizData.questions.length * 30) * 1000;
-          update(ref(db, "users/" + userIndex), {
-            playingQuiz: id,
-            quizEndsAt: new Date().getTime() + quizTime,
-          }).then(() => {
-            setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+        if (matching) {
+          setIsLoading(prev => prev + 1);
+          get(ref(db, "users")).then(snapShot => {
+            const users = snapShot.val();
+            const userIndex = users.findIndex(user => user.id === userInfo.id);
+            const quizTime = Math.floor(quizData.questions.length * 30) * 1000;
+            update(ref(db, "users/" + userIndex), {
+              playingQuiz: id,
+              quizEndsAt: new Date().getTime() + quizTime,
+            }).then(() => {
+              setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
 
-            setUserInfo(prev => ({
-              ...prev, playingQuiz: id, quizEndsAt: new Date().getTime() + quizTime,
-            }))
-            navigate("/quiz/" + id);
+              setUserInfo(prev => ({
+                ...prev, playingQuiz: id, quizEndsAt: new Date().getTime() + quizTime,
+              }))
+              navigate("/quiz/" + id);
+            }).catch(err => {
+              console.log(err);
+              setIsLoading(prev => prev + 1);
+              setMessageContent({
+                title: "Starting Error",
+                message: "Oops! something went wrong while starting the quiz.",
+              })
+            })
           }).catch(err => {
             console.log(err);
-            setIsLoading(prev => prev + 1);
+            setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
+
             setMessageContent({
               title: "Starting Error",
               message: "Oops! something went wrong while starting the quiz.",
             })
           })
-        }).catch(err => {
-          console.log(err);
-          setIsLoading(prev => prev !== 0 ? prev - 1 : prev);
-
-          setMessageContent({
-            title: "Starting Error",
-            message: "Oops! something went wrong while starting the quiz.",
-          })
-        })
+        } else {
+          setShowEnterPassword(true);
+        }
       } else {
         setMessageContent({
           title: "Access Denied",
@@ -96,7 +103,7 @@ const QuizInfoPage = () => {
         })
         navigate("/home");
       }
-    }else {
+    } else {
       navigate("/result/" + id);
     }
   }
@@ -108,7 +115,7 @@ const QuizInfoPage = () => {
         <p>Start Quiz</p>
       </header>
       <div className="content_container">
-        <div className="content">
+        <div className="page_content">
           <p className="title">{quizData.category}</p>
           <div className="data">
             <div className="item teacher">
@@ -146,9 +153,76 @@ const QuizInfoPage = () => {
           </div>
         </div>
       </div>
-      <button id="start_quiz" className={userInfo.playedQuizzes ? (userInfo.playedQuizzes.includes(id) ? "show_result" : "start_quiz") : "start_quiz"} onClick={startQuiz}>{userInfo.playedQuizzes ? (userInfo.playedQuizzes.includes(id) ? "Show Result" : "Start Quiz") : "Start Quiz"}</button>
+      <button id="start_quiz" className={userInfo.playedQuizzes ? (userInfo.playedQuizzes.includes(id) ? "show_result" : "start_quiz") : "start_quiz"} onClick={() => startQuiz(!quizData.password || quizData.password && passwordMatches)}>{userInfo.playedQuizzes ? (userInfo.playedQuizzes.includes(id) ? "Show Result" : "Start Quiz") : "Start Quiz"}</button>
+      {showEnterPassword ? <EnterPassword setPasswordMatches={setPasswordMatches} setShowEnterPassword={setShowEnterPassword} startQuiz={startQuiz} setMessageContent={setMessageContent} setIsLoading={setIsLoading} /> : undefined}
     </div>
   )
+}
+
+const EnterPassword = ({ setPasswordMatches, setShowEnterPassword, startQuiz, setMessageContent, setIsLoading }) => {
+  const { id } = useParams();
+  const passwordInputRef = useRef();
+
+  const passwordMatches = () => {
+    setIsLoading((prev) => prev + 1);
+    if (passwordInputRef.current.value) {
+      fetch("http://localhost:3001/api/check-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          quizID: id,
+          userPassword: passwordInputRef.current.value,
+        }),
+      }).then(res => res.json())
+      .then(data => {
+        if(data.failed) {
+          setMessageContent({
+            title: "Checking Failed",
+            message: data.msg,
+          })
+        }else {
+          if(data.matches === true) {
+            console.log("Matched password")
+            setPasswordMatches(true);
+            startQuiz(true);
+          }else {
+            setMessageContent({
+              title: "Wrong Password",
+              message: `The password '${passwordInputRef.current.value}' is wrong.`,
+            })
+          }
+        }
+        setIsLoading((prev) => prev !== 0 ? prev - 1 : 0);
+      }).catch((err) => {
+        setIsLoading((prev) => prev !== 0 ? prev - 1 : 0);
+        setMessageContent({
+          title: "Checking Failed",
+          message: "Oops! somethin went wrong while checking the password.",
+        })
+      })
+    }else {
+      setIsLoading((prev) => prev !== 0 ? prev - 1 : 0);
+      setMessageContent({
+        title: "Empty Input",
+        message: "Enter a password don't leave the input empty.",
+      })
+    }
+  }
+
+  return (
+    <div className="enter_password_container">
+      <div className="content">
+        <p className="title">Enter Password</p>
+        <div className="main_content">
+          <input ref={passwordInputRef} type="text" placeholder='Password...' />
+          <button className="start" onClick={passwordMatches}>Start Quiz</button>
+          <button className="cancel" onClick={() => setShowEnterPassword(false)}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default QuizInfoPage;
