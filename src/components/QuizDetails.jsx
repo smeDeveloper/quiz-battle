@@ -37,7 +37,7 @@ const QuizDetails = () => {
 
     useEffect(() => {
         setIsLoading(prev => prev + 1);
-        fetch("http://localhost:3001/api/results", {
+        fetch("https://quiz-battle-api.vercel.app/api/results", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -347,7 +347,7 @@ const UpdateQuiz = ({ description, category, setIsLoading, setMessageContent, se
         } else {
             if (categories.includes(quizCategory)) {
                 setIsLoading(prev => prev + 1);
-                fetch("http://localhost:3001/api/edit", {
+                fetch("https://quiz-battle-api.vercel.app/api/edit", {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
@@ -446,7 +446,7 @@ const DeleteQuiz = ({ quizID, userID, setShowRemoveQuiz, setMessageContent, setI
 
     const removeQuiz = () => {
         setIsLoading(prev => prev + 1);
-        fetch("http://localhost:3001/api/delete", {
+        fetch("https://quiz-battle-api.vercel.app/api/delete", {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -501,7 +501,7 @@ const ChangePassword = ({setIsLoading , userID , setMessageContent , setQuizData
 
     const updatePassword = () => {
         setIsLoading(true);
-        fetch("http://localhost:3001/api/change-password" , {
+        fetch("https://quiz-battle-api.vercel.app/api/change-password" , {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

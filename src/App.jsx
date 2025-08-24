@@ -70,7 +70,7 @@ function App() {
   useEffect(() => {
     if (user) {
       setIsLoading(prev => prev + 1);
-      fetch("http://localhost:3001/api/quiz")
+      fetch("https://quiz-battle-api.vercel.app/api/quiz")
         .then(res => res.json())
         .then(data => {
           setQuizzes(data.quizzes);

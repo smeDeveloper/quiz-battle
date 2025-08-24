@@ -20,7 +20,7 @@ const ResultPage = () => {
 
     useEffect(() => {
         setIsLoading(prev => prev + 1);
-        fetch("http://localhost:3001/api/result", {
+        fetch("https://quiz-battle-api.vercel.app/api/result", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
